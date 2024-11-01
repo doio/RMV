@@ -1,7 +1,7 @@
 /*
 引用地址：https://raw.githubusercontent.com/RuCu6/Loon/main/Scripts/weibo.js
 */
-// 2024-10-30 01:05
+// 2024-10-31 11:40
 
 const url = $request.url;
 if (!$response) $done({});
@@ -948,6 +948,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
       obj.items = newItems;
     }
+  } else if (url.includes("/2/shproxy/chaohua/discovery/searchactive")) {
+    // 超话搜索页
+    if (obj?.items?.length > 0) {
+      // 1007 可能感兴趣的话题
+      obj.items = obj.items.filter((i) => i?.data?.card_type !== 1007);
+    }
   } else if (url.includes("/2/statuses/container_timeline_hot") || url.includes("/2/statuses/unread_hot_timeline")) {
     // 首页推荐tab信息流
     for (let s of ["ad", "advertises", "trends", "headers"]) {
@@ -1058,6 +1064,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             // 197 你可能感兴趣的超话
             // 1012 热门超话
             continue;
+          } else {
+            if (item?.data?.card_type === 31 && item?.data?.hotwords?.length > 0) {
+              // 31 搜索框滚动热词
+              item.data.hotwords = [];
+            }
+            newItems.push(item);
           }
         } else if (item?.category === "group") {
           if (item?.style?.topHover) {
@@ -1170,7 +1182,18 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
   } else if (url.includes("/2/statuses/repost_timeline")) {
     // 评论详情页 转发区
+    if (obj?.hot_reposts?.length > 0) {
+      // 样式1
+      let newReposts = [];
+      for (let item of obj.hot_reposts) {
+        if (!isAd(item)) {
+          newReposts.push(item);
+        }
+      }
+      obj.hot_reposts = newReposts;
+    }
     if (obj?.reposts?.length > 0) {
+      // 样式2
       let newReposts = [];
       for (let item of obj.reposts) {
         if (!isAd(item)) {
